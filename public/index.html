@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Port Register — Agent Port Registry</title>
+  <meta name="description"
+    content="Centralized port registry for AI agents. Check availability, register ports, and track active allocations in real time." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        </div>
+        <span class="logo-text">Port Register</span>
+        <span class="logo-badge">LIVE</span>
+      </div>
+      <div class="header-right">
+        <div class="status-pill" id="serverStatus">
+          <span class="status-dot"></span>
+          <span class="status-text">Connecting…</span>
+        </div>
+        <button class="btn btn-ghost" id="clearAllBtn" title="Force-clear all registrations">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4h6v2" />
+          </svg>
+          Clear All
+        </button>
+        <button class="btn btn-ghost" id="refreshBtn" title="Refresh now">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15A9 9 0 1 1 5.64 5.64L23 10" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Stats Bar -->
+    <section class="stats-bar" id="statsBar">
+      <div class="stat-card stat-clickable" id="cardRegistered" title="Click to view registered ports">
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-label">Registered Ports <span class="stat-arrow">↗</span></div>
+      </div>
+      <div class="stat-card stat-clickable" id="cardSysBound" title="Click to view all system ports">
+        <div class="stat-value" id="statSysBound">—</div>
+        <div class="stat-label">System Bound Ports <span class="stat-arrow">↗</span></div>
+      </div>
+      <div class="stat-card stat-card-warn stat-clickable" id="cardUnregistered"
+        title="Click to view unregistered ports">
+        <div class="stat-value" id="statUnregistered">—</div>
+        <div class="stat-label">Unregistered (OS only) <span class="stat-arrow">↗</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statLastUpdate">—</div>
+        <div class="stat-label">Last Refreshed</div>
+      </div>
+    </section>
+
+    <!-- Panel Grid -->
+    <div class="panel-grid">
+
+      <!-- Left: Snippet only -->
+      <aside class="sidebar">
+
+        <!-- Agent Usage Snippet -->
+        <div class="card" id="snippetCard">
+          <div class="card-header">
+            <div class="card-icon snippet-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </div>
+            <h2 class="card-title">Agent Snippet</h2>
+          </div>
+          <p class="snippet-desc">Copy this into your agent's startup script:</p>
+          <div class="code-block" id="snippetCode">
+            <button class="copy-btn" id="copySnippetBtn" title="Copy to clipboard">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+            <pre id="snippetPre">BASE="http://localhost:4444/api"
+PORT=3000
+AGENT="my-agent"
+REASON="Dev server"
+
+# 1. Check if port is available
+STATUS=$(curl -s "$BASE/ports/check/$PORT")
+AVAILABLE=$(echo $STATUS | python -c \
+  "import sys,json; print(json.load(sys.stdin)['available'])")
+
+if [ "$AVAILABLE" = "True" ]; then
+  # 2. Register the port
+  curl -s -X POST "$BASE/ports/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"port\":$PORT,\"agent\":\"$AGENT\",\"reason\":\"$REASON\"}"
+  echo "Port $PORT registered."
+else
+  echo "Port $PORT is taken. Try another."
+  # Optionally: GET $BASE/suggest to find a free one
+fi</pre>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Right: Active Registry Table + Process Cloud -->
+      <section class="registry-panel">
+        <div class="registry-header">
+          <h2 class="section-title">Active Registrations</h2>
+          <div class="table-controls">
+            <div class="search-wrap">
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="text" id="searchInput" class="input search-input"
+                placeholder="Filter by port, agent, or reason…" />
+            </div>
+            <span class="refresh-indicator" id="refreshIndicator">Auto-refresh: 10s</span>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </div>
+            <p class="empty-title">No registrations yet</p>
+            <p class="empty-sub">Agents will appear here once they register a port.</p>
+          </div>
+          <table class="registry-table hidden" id="registryTable">
+            <thead>
+              <tr>
+                <th>Port</th>
+                <th>Agent</th>
+                <th>Reason</th>
+                <th>OS Status</th>
+                <th>Registered</th>
+                <th>Expires</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="registryBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Process Cloud -->
+        <div class="proc-cloud-wrap">
+          <div class="proc-cloud-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="card-icon suggest-icon" style="width:26px;height:26px;flex-shrink:0">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <path d="M8 21h8M12 17v4" />
+                </svg>
+              </div>
+              <h3 class="section-title" style="font-size:13px">Detected Processes
+                <span class="sys-port-count" id="sysPortCount"></span>
+              </h3>
+            </div>
+            <span class="sys-scan-hint">Each bubble = a process using OS ports. Size reflects port count.</span>
+          </div>
+          <div class="proc-cloud-body" id="procCloudBody">
+            <div class="sys-loading" id="sysLoading">Scanning…</div>
+          </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="event-log-wrap">
+          <div class="event-log-header">
+            <h3 class="event-log-title">Activity Log</h3>
+            <button class="btn btn-ghost btn-xs" id="clearLogBtn">Clear</button>
+          </div>
+          <div class="event-log" id="eventLog">
+            <div class="log-entry log-info">Server connected. Watching for port activity…</div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+
+  <!-- Agent Usage Snippet -->
+  <div class="card" id="snippetCard">
+    <div class="card-header">
+      <div class="card-icon snippet-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6" />
+          <polyline points="8 6 2 12 8 18" />
+        </svg>
+      </div>
+      <h2 class="card-title">Agent Snippet</h2>
+    </div>
+    <p class="snippet-desc">Copy this into your agent's startup script:</p>
+    <div class="code-block" id="snippetCode">
+      <button class="copy-btn" id="copySnippetBtn" title="Copy to clipboard">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      </button>
+      <pre id="snippetPre">BASE="http://localhost:4444/api"
+PORT=3000
+AGENT="my-agent"
+REASON="Dev server"
+
+# 1. Check if port is available
+STATUS=$(curl -s "$BASE/ports/check/$PORT")
+AVAILABLE=$(echo $STATUS | python -c \
+  "import sys,json; print(json.load(sys.stdin)['available'])")
+
+if [ "$AVAILABLE" = "True" ]; then
+  # 2. Register the port
+  curl -s -X POST "$BASE/ports/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"port\":$PORT,\"agent\":\"$AGENT\",\"reason\":\"$REASON\"}"
+  echo "Port $PORT registered."
+else
+  echo "Port $PORT is taken. Try another."
+  # Optionally: GET $BASE/suggest to find a free one
+fi</pre>
+    </div>
+  </div>
+
+  </aside>
+
+  <!-- Right: Active Registry Table -->
+  <section class="registry-panel">
+    <div class="registry-header">
+      <h2 class="section-title">Active Registrations</h2>
+      <div class="table-controls">
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="searchInput" class="input search-input"
+            placeholder="Filter by port, agent, or reason…" />
+        </div>
+        <span class="refresh-indicator" id="refreshIndicator">Auto-refresh: 10s</span>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="tableWrap">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        <p class="empty-title">No registrations yet</p>
+        <p class="empty-sub">Register a port using the panel on the left, or wait for an agent to check in.</p>
+      </div>
+      <table class="registry-table hidden" id="registryTable">
+        <thead>
+          <tr>
+            <th>Port</th>
+            <th>Agent</th>
+            <th>Reason</th>
+            <th>OS Status</th>
+            <th>Registered</th>
+            <th>Expires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="registryBody"></tbody>
+      </table>
+    </div>
+
+    <!-- System Ports Scan -->
+    <div class="sys-scan-wrap">
+      <div class="sys-scan-header" id="sysScanToggle">
+        <div class="sys-scan-title-row">
+          <div class="card-icon suggest-icon" style="width:26px;height:26px;flex-shrink:0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+          </div>
+          <h3 class="section-title" style="font-size:13px">System Port Scan <span class="sys-port-count"
+              id="sysPortCount"></span></h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="sys-scan-hint">Ports in use by OS (registered + unregistered)</span>
+          <button class="btn btn-ghost btn-xs" id="sysScanRefreshBtn">Scan</button>
+          <svg class="sys-chevron" id="sysChevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </div>
+      <div class="sys-scan-body hidden" id="sysScanBody">
+        <div class="sys-loading hidden" id="sysLoading">Scanning…</div>
+        <div class="sys-port-grid" id="sysPortGrid"></div>
+      </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="event-log-wrap">
+      <div class="event-log-header">
+        <h3 class="event-log-title">Activity Log</h3>
+        <button class="btn btn-ghost btn-xs" id="clearLogBtn">Clear</button>
+      </div>
+      <div class="event-log" id="eventLog">
+        <div class="log-entry log-info">Server connected. Watching for port activity…</div>
+      </div>
+    </div>
+
+  </section>
+  </div>
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal">
+      <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
+      <p class="modal-body" id="modalBody">Are you sure?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn-danger" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Drawer -->
+  <div class="drawer-overlay hidden" id="drawerOverlay"></div>
+  <aside class="drawer hidden" id="detailDrawer">
+    <div class="drawer-header">
+      <div class="drawer-title-row">
+        <h2 class="drawer-title" id="drawerTitle">Port Details</h2>
+        <span class="drawer-count" id="drawerCount"></span>
+      </div>
+      <button class="drawer-close" id="drawerClose" title="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="drawer-search-wrap">
+      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input type="text" id="drawerSearch" class="input search-input" placeholder="Filter…"
+        style="width:100%;padding-left:32px" />
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

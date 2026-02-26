@@ -1,0 +1,12 @@
+{
+  "registrations": [
+    {
+      "port": 4444,
+      "agent": "port-register",
+      "reason": "Port Register service — central port registry web UI and API for all agents",
+      "registeredAt": "2026-02-26T03:57:06.834Z",
+      "expiresAt": 1803614226834,
+      "id": "4444-1772078226834"
+    }
+  ]
+}
