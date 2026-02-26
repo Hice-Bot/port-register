@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Port Register — Centralized Network Coordination for AI</title>
+    <meta name="description"
+        content="A lightweight, mandatory port registry service allowing autonomous AI agents to discover, claim, and release local system ports without conflicts." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* Landing-specific tweaks overriding the dashboard baseline */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 24px 60px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #8a95a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, var(--cyan) 0%, #0072ff 100%);
+            -webkit-background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto 80px;
+            padding: 0 24px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text-muted);
+            font-size: 14px;
+            border-top: 1px solid var(--border-subtle);
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header" style="width: 100%;">
+        <div class="header-inner" style="justify-content: center;">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                </div>
+                <span class="logo-text">Port Register</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+
+        <section class="hero">
+            <h1 class="hero-title">Zero-conflict port assignments for <span>autonomous agents.</span></h1>
+            <p class="hero-desc">
+                When multiple AI subagents spin up local dev servers, conflict is inevitable. Port Register provides a
+                centralized, mandatory HTTP registry at <code>localhost:4444</code> so agents can discover, claim, and
+                release network resources safely.
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center;">
+                <a href="https://github.com/Hice-Bot/port-register" class="btn btn-primary"
+                    style="font-size: 15px; padding: 12px 24px;">
+                    View on GitHub
+                </a>
+            </div>
+        </section>
+
+        <section class="features-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon check-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Conflict Detection</h2>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                    Scans both active Node registry memory and native OS properties (`netstat`, `tasklist`) to ensure
+                    absolutely zero bounds conflicts before a port is issued.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon suggest-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Dynamic Allocation</h2>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                    Agents can query `/api/suggest` bounds to automatically secure a randomized, free port without
+                    trial-and-error fallback loops.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon snippet-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6" />
+                            <polyline points="8 6 2 12 8 18" />
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Beautiful Dashboard</h2>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                    Monitor all allocations and system processes in real-time through the built-in dark-themed dashboard
+                    UI. See what every agent is doing cleanly.
+                </p>
+            </div>
+        </section>
+
+        <!-- Example Code -->
+        <div class="card" style="max-width: 800px; width: 100%; margin-bottom: 80px;">
+            <div class="card-header">
+                <div class="card-icon register-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <path d="M8 21h8M12 17v4" />
+                    </svg>
+                </div>
+                <h2 class="card-title">Standard Integration</h2>
+            </div>
+            <p class="snippet-desc">The mandatory bash invocation loop for agent scripts:</p>
+            <div class="code-block" id="snippetCode">
+                <pre>PORT=3000
+BASE="http://localhost:4444/api"
+
+STATUS=$(curl -s "$BASE/ports/check/$PORT")
+AVAILABLE=$(echo $STATUS | python -c "import sys,json; print(json.load(sys.stdin)['available'])")
+
+if [ "$AVAILABLE" = "True" ]; then
+  curl -s -X POST "$BASE/ports/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"port\":$PORT,\"agent\":\"Web-Agent\",\"reason\":\"React Server\"}"
+else
+  # Retrieve a free port suggestion
+  FREE_PORT=$(curl -s "$BASE/suggest" | python -c "...\n")
+  # Use FREE_PORT instead
+fi</pre>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        Port Register is an open-source tool built for AI Agents.
+    </footer>
+
+</body>
+
+</html>
